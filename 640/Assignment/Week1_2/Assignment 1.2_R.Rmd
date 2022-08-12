@@ -1,0 +1,81 @@
+---
+title: "Assignment 1.2"
+author: "Veera Koppula"
+date: "03/26/2022"
+output:
+  pdf_document: default
+---
+
+```{r eval=TRUE, echo=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## You need to submit 3 bar charts, 3 stacked bar charts, 3 pie charts, and 3 donut charts using Tableau or PowerBI, Python and R using the data from the link below (the link will download a zipped folder containing three data files.) You may also use your own datasets if you wish. You can also submit using D3 if you choose – but it is not required. You can choose which library to use in Python or R, documentation is provided to help you decide and as you start to play around in the libraries, you will decide which you prefer.
+```{r eval=TRUE, echo=FALSE}
+setwd("/Users/veerareddykoppula/Downloads/Desktop/BRUIN/640_Data_Visualization/640/Assignment/Week1_2/")
+# Import required packages
+library('magrittr')
+
+# Import data to be used for visualization
+fileData = paste(getwd(), '/ex1-2/obama-approval-ratings.xls', sep = '')
+obama = xlsx::read.xlsx(fileData, sheetIndex = 1, stringsAsFactors = FALSE)
+
+# Examine data
+obama
+
+```
+
+### Bar chart
+
+####Plot the issue in *x-axis* and any of the corresponding ratings in the *y-axis*. I am chosing the approval ratings as the measure
+```{r eval=TRUE, echo=FALSE}
+obama %>%
+    dplyr::select(Issue, Approve) %>%
+    dplyr::arrange(-Approve) %>%
+    dplyr::mutate(SortOrder = factor(Issue, Issue)) %>% 
+    ggplot2::ggplot(ggplot2::aes(x=SortOrder, y=Approve, fill=Issue)) +
+        ggplot2::geom_bar(stat='identity', color='black') + 
+        ggplot2::xlab('Issue') + ggplot2::ylab('Approval Count') +
+        ggplot2::ggtitle('Approval Rating of Obama') 
+```
+
+### Stacked Bar Chart
+#### Plot each issue with their respective Approval, Disapproval and Neutral counts. 
+```{r eval=TRUE, echo=FALSE}
+# We need to reshape the data to long format for this purpose
+obama_long = obama %>%
+    tidyr::gather('Reaction','Ratings', Approve, Disapprove, None)
+
+# Plot stacked
+ggplot2::ggplot(data = obama_long, ggplot2::aes(x = Issue, y = Ratings, fill = Reaction)) + 
+    ggplot2:: geom_bar(stat='identity')  + 
+    ggplot2::scale_fill_brewer(palette = 15)
+```
+
+
+### Pie Chart
+#### For pie chart demonstration, Plot Immigration issue and plot the different ratings in a pie.
+```{r echo=TRUE}
+obama_long %>%
+    dplyr::filter(Issue=='Immigration') %>%
+    ggplot2::ggplot(ggplot2::aes(x="", y=Ratings, fill=Reaction))+
+        ggplot2::geom_bar(width = 1, stat = 'identity') +
+        ggplot2::coord_polar('y', start=0)  +
+        ggplot2::ggtitle(label = 'Reaction on Immigration Issue in Obama Era') +
+        ggplot2::scale_fill_brewer(palette='Spectral')
+```
+
+### Donut Chart
+#### For donut chart demonstration, Plot Education issue and plot the different ratings in the shape of a ring/donut.
+```{r echo=TRUE}
+obama_long %>%
+    dplyr::filter(Issue=='Education') %>%
+    dplyr::mutate(ymax=cumsum(Ratings),
+                  ymin=c(0,ymax[1:length(ymax)-1])) %>%
+    ggplot2::ggplot(ggplot2::aes(fill=Reaction, ymax=ymax, ymin=ymin, xmax=4, xmin=3)) +
+         ggplot2::geom_rect() +
+         ggplot2::coord_polar(theta='y') +
+         ggplot2::xlim(c(0, 4)) +
+         ggplot2::annotate('text', x = 0, y = 0, label = 'Reaction on Education') +
+         ggplot2::labs(title='')
+```

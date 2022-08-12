@@ -1,0 +1,58 @@
+---
+title: "Assignment 5.2"
+author: "Veera Koppula"
+date: "05/18/2022"
+output:
+  pdf_document: default
+---
+
+```{r eval=TRUE, echo=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## You need to submit 3 heat maps, 3 spatial charts and 3 contour charts using Tableau or PowerBI, Python and R using the data below (or your own datasets). You can also use D3. You can choose which library to use in Python or R, documentation is provided to help you decide and as you start to play around in the libraries, you will decide which you prefer.
+
+```{r eval=TRUE, echo=FALSE}
+setwd("/Users/veerareddykoppula/Downloads/Desktop/BRUIN/640_Data_Visualization/640/Assignment/Week9_10/5.2/")
+# Import required packages
+library('magrittr') 
+library('ggmap')
+library('ggplot2')
+library('usmap')
+
+ppg <-  read.csv('ex5-2/ppg2008.csv')
+costco <- read.csv('ex5-2/costcos-geocoded.csv')
+
+# Create a statewide count of Costco
+
+costco_sum <- costco %>% 
+  dplyr::mutate(state = State) %>% 
+  dplyr::group_by(state) %>%
+  dplyr::summarise(store_count = dplyr::n())
+```
+
+### Plot1: Heat Map
+```{r eval=TRUE, echo=FALSE}
+heatmap(as.matrix(ppg[,2:ncol(ppg)]))
+```
+
+### Plot2: Spatial Chart
+```{r eval=TRUE, echo=FALSE}
+# plot number of Costco stores in staes through color intensity
+
+options(repr.plot.width = 4, repr.plot.height = 3)
+
+plot_usmap(data = costco_sum, values = "store_count", lines = "white") + 
+  scale_fill_continuous(name = "Number of Costco Stores (2015)", label = scales::comma) + 
+  theme(legend.position = "right")
+```
+### Plot3: Contour Plot
+```{r eval=TRUE, echo=FALSE}
+ggplot(ppg, aes(x=FTM, y=FTA))+
+  theme_bw()+
+  geom_point(alpha=0.1, col='red')+
+  geom_density2d(color='black')+
+  ggtitle('Contour Plot')+
+  theme(plot.title = element_text(hjust = 0.5))+
+  labs(x='FTM', y='FTA')
+```
